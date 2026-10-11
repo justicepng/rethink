@@ -115,6 +115,12 @@ the second one is the model it is sold as.
 | --------------- | --------- | ----------------- |
 | ST_B_E4H01Y_APL | S5BBP     | 👍 mostly working |
 
+#### Ventilators / ERVs (Heat Recovery Ventilator)
+
+| ThinQ model | Appliance | Support |
+| ----------- | --------- | ------- |
+| VENT_725601_WW / VENT_725601 | LG Residential ERV (환기시스템) | 👍 working (Power, Fan Speed, Modes, Temp & Air Quality Sensors) |
+
 The supported appliances can be used "out of the box" with HomeAssistant or another compatible MQTT consumer.  
 Appliances not listed above can still be used with the bridge mode, but they will not be translated to MQTT. Contributions are welcome!
 
@@ -127,6 +133,56 @@ See the [instructions](https://github.com/anszom/rethink/wiki/Installing-rethink
 See also the [Home Assistant App](https://github.com/anszom/rethink-ha/tree/master/rethink).
 
 [![Open your Home Assistant instance and show the add app repository dialog with the repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fanszom%2Frethink-ha)
+
+## Network & DNS Configuration (AdGuard Home / Dnsmasq)
+
+> [!IMPORTANT]
+> **Do NOT use whole-network global DNS redirection!**
+> If you globally rewrite `common.lgthinq.com` to Rethink for all LAN clients, the official **LG ThinQ mobile app**, **Home Assistant official `lg_thinq` integration**, and any **unsupported LG appliances** (dishwashers, cooktops, fridges, etc.) will be hijacked and become completely inoperable.
+> **Rethink DNS rewrites must target ONLY the specific IoT devices you want Rethink to manage.**
+
+### AdGuard Home (Recommended)
+Use AdGuard Home's **Custom Filtering Rules** (`Filters` -> `Custom filtering rules`) with the `$client` modifier so only designated appliances are redirected:
+
+```adblock
+! Rethink DNS Redirection (Target Appliance Only)
+||common.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||common.iot.eic.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||common.iot.kic.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||eic.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||eic-krd.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||eic-common.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||krcic.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||kic-common.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||kic-mclip.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||aic.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||rethink.lgthinq.com^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+||d32l1ph11hh4jr.cloudfront.net^$dnsrewrite=<RETHINK_IP>,client=<APPLIANCE_IP>
+
+! Allow official cloud access for smartphones and all other LG devices
+@@||lge.com^$important
+@@||lgthinq.com^$important
+@@||lgeapi.com^$important
+@@||lgtviot.com^$important
+@@||smartthinq.com^$important
+```
+
+### Dnsmasq
+Standard `hosts` entries in Dnsmasq will hijack all clients. Isolate the target appliances to a separate VLAN/SSID with dedicated DNS, or use DHCP tagging (`dhcp-host=<MAC>,set:rethink`) with conditional DNS options.
+
+## Workflow for Adding New Devices to Rethink
+
+Follow this 5-step checklist whenever you bring a new appliance onto Rethink:
+
+1. **Assign Static IP in Router DHCP:** Ensure the device's IP address will never change, as the client-specific DNS rule depends on it.
+2. **Add Client-Specific Rewrite in DNS Server:** Copy the redirect rules in AdGuard Home with `client=<NEW_DEVICE_IP>`.
+3. **Verify Device Model Handler:**
+   - If already supported: verify matching model identifier in `cloud/ha_bridge.ts`.
+   - If unsupported: enable Bridge Mode (`"bridge": { "dns": ... }` in `config.json`), capture traffic with `tools/rethink-capture.ts`, and create a new handler in `cloud/devices/`.
+4. **Reboot Appliance:** Power cycle the appliance (or reconnect Wi-Fi) to flush old DNS caches and backoff timers.
+5. **Verify HA MQTT Discovery:** Check Home Assistant MQTT integration for automatically published entities.
+
+> 📖 **한국어 상세 가이드:** 자세한 설정 예시 및 트러블슈팅은 [DNS & 기기 추가 가이드 (한국어)](docs/DNS_AND_DEVICE_GUIDE_KO.md)를 참조하세요.
 
 ## Management
 
