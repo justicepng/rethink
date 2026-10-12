@@ -151,6 +151,12 @@ export default class VENT_725601_WW extends TLVDevice {
                     state_topic: '$this/sensor-out_air_quality_level',
                     icon: 'mdi:air-filter',
                 },
+                uv_nano: {
+                    platform: 'switch',
+                    unique_id: '$deviceid-uv_nano',
+                    name: 'UVnano',
+                    icon: 'mdi:shield-sun',
+                },
             },
         })
 
@@ -167,7 +173,7 @@ export default class VENT_725601_WW extends TLVDevice {
             false,
         )
 
-        // 0x1fa: Fan speed (ThinQ: 약풍 = raw 2, 강풍 = raw 6, 특강 = raw 8)
+        // 0x1fa: Fan speed (ThinQ: 약풍 = raw 2, 강풍 = raw 6, 특강 = raw 7)
         // HA speed: 1 (약풍), 2 (강풍), 3 (특강)
         this.addField(
             config,
@@ -178,19 +184,19 @@ export default class VENT_725601_WW extends TLVDevice {
                 read_xform: (raw) => {
                     if (raw <= 2) return 1 // 약풍
                     if (raw <= 6) return 2 // 강풍
-                    return 3 // 특강
+                    return 3 // 특강 (raw 7)
                 },
                 write_xform: (val) => {
                     const n = Number(val)
                     if (n === 1) return 2 // 약풍
                     if (n === 2) return 6 // 강풍
-                    return 8 // 특강
+                    return 7 // 특강 (raw 7)
                 },
             },
             false,
         )
 
-        // 0x1f9: Mode (Hardware capability codes: 0x25 = auto, 0x26 = bypass, 0x27 = saving)
+        // 0x1f9: Mode (auto=0x25, bypass=0x26, saving=0x27, ventilation=0x26)
         this.addField(
             config,
             {
@@ -208,14 +214,27 @@ export default class VENT_725601_WW extends TLVDevice {
                 write_xform: (val) => {
                     const modes: Record<string, number> = {
                         auto: 0x25,
+                        saving: 0x27,
                         bypass: 0x26,
                         ventilation: 0x26,
-                        saving: 0x27,
                     }
                     return modes[String(val).toLowerCase()] ?? 0x25
                 },
             },
             false,
+        )
+
+        // UVnano (0x2a2: 0 = OFF, 1 = ON)
+        this.addField(
+            config,
+            {
+                id: 0x2a2,
+                name: '',
+                comp: 'uv_nano',
+                read_xform: (raw) => (raw ? 'ON' : 'OFF'),
+                write_xform: (val) => (val === 'ON' ? 1 : 0),
+            },
+            true,
         )
 
         // Temperatures & Air quality index from TLV
@@ -346,14 +365,24 @@ export default class VENT_725601_WW extends TLVDevice {
                 this.publishProperty('fan-power', 'OFF')
             }
         } else if (prop === 'fan-speed') {
-            const num = Math.round(Number(mqttValue))
-            if (num <= 0) {
+            const rawVal = Number(mqttValue)
+            let step = Math.round(rawVal)
+            if (step > 3) {
+                // Percentage (0..100) received from HA
+                if (step <= 0) step = 0
+                else if (step <= 33) step = 1
+                else if (step <= 66) step = 2
+                else step = 3
+            }
+
+            if (step <= 0) {
                 // User chose 0 / 꺼짐
                 this.raw_clip_state[0x1f7] = 0
                 this.send([1, 1, 2, 1, 1], [{ t: 0x1f7, v: 0 }])
                 this.publishProperty('fan-power', 'OFF')
             } else {
-                const rawSpeed = num === 1 ? 2 : num === 2 ? 6 : 8
+                // 1: 약풍 (raw 2), 2: 강풍 (raw 6), 3: 특강 (raw 7)
+                const rawSpeed = step === 1 ? 2 : step === 2 ? 6 : 7
                 this.raw_clip_state[0x1fa] = rawSpeed
                 this.raw_clip_state[0x1f7] = 1 // Ensure power turns on
                 if (this.raw_clip_state[0x1f9] === undefined) {
@@ -368,14 +397,14 @@ export default class VENT_725601_WW extends TLVDevice {
                     ],
                 )
                 this.publishProperty('fan-power', 'ON')
-                this.publishProperty('fan-speed', num)
+                this.publishProperty('fan-speed', step)
             }
         } else if (prop === 'fan-mode') {
             const modes: Record<string, number> = {
                 auto: 0x25,
+                saving: 0x27,
                 bypass: 0x26,
                 ventilation: 0x26,
-                saving: 0x27,
             }
             const modeVal = modes[mqttValue.toLowerCase()] ?? 0x25
             this.raw_clip_state[0x1f9] = modeVal
@@ -390,6 +419,20 @@ export default class VENT_725601_WW extends TLVDevice {
                 )
             }
             this.publishProperty('fan-mode', mqttValue)
+        } else if (prop === 'uv_nano' || prop === 'uv_nano-') {
+            const val = mqttValue === 'ON' ? 1 : 0
+            this.raw_clip_state[0x2a2] = val
+            const pwr = this.raw_clip_state[0x1f7] ?? 1
+            const mode = this.raw_clip_state[0x1f9] ?? 0x25
+            this.send(
+                [1, 1, 2, 1, 1],
+                [
+                    { t: 0x1f7, v: pwr },
+                    { t: 0x1f9, v: mode },
+                    { t: 0x2a2, v: val },
+                ],
+            )
+            this.publishProperty('uv_nano-', mqttValue)
         } else {
             super.setProperty(prop, mqttValue)
         }
