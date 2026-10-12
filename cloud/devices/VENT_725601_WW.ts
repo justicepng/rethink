@@ -4,6 +4,7 @@ import { DeviceDiscovery, type Connection } from '../homeassistant'
 import { type Metadata } from '../thinq'
 import { allowExtendedType } from '@/util/casting'
 import * as TLV from '@/util/tlv'
+import log from '@/util/logging'
 import HADevice from './base'
 
 export default class VENT_725601_WW extends TLVDevice {
@@ -12,7 +13,7 @@ export default class VENT_725601_WW extends TLVDevice {
     constructor(HA: Connection, thinq: Thinq2Device, meta: Metadata) {
         super(HA, thinq)
 
-        const deviceName = '\uD658\uAE30'
+        const deviceName = '환기'
 
         const config: DeviceDiscovery = allowExtendedType({
             ...HADevice.config(meta, { name: deviceName }),
@@ -29,13 +30,13 @@ export default class VENT_725601_WW extends TLVDevice {
                     speed_range_max: 3,
                     preset_mode_state_topic: '$this/fan-mode',
                     preset_mode_command_topic: '$this/fan-mode/set',
-                    preset_modes: ['ventilation', 'auto', 'bypass', 'saving'],
+                    preset_modes: ['auto', 'saving', 'bypass', 'ventilation'],
                     icon: 'mdi:hvac',
                 },
                 temp_indoor: {
                     platform: 'sensor',
                     unique_id: '$deviceid-temp-indoor',
-                    name: 'Indoor temperature',
+                    name: '실내 온도',
                     device_class: 'temperature',
                     state_class: 'measurement',
                     unit_of_measurement: '°C',
@@ -44,7 +45,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 temp_exhaust: {
                     platform: 'sensor',
                     unique_id: '$deviceid-temp-exhaust',
-                    name: 'Exhaust temperature',
+                    name: '배기 온도',
                     device_class: 'temperature',
                     state_class: 'measurement',
                     unit_of_measurement: '°C',
@@ -53,7 +54,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 temp_outdoor: {
                     platform: 'sensor',
                     unique_id: '$deviceid-temp-outdoor',
-                    name: 'Outdoor temperature',
+                    name: '실외 온도',
                     device_class: 'temperature',
                     state_class: 'measurement',
                     unit_of_measurement: '°C',
@@ -62,8 +63,92 @@ export default class VENT_725601_WW extends TLVDevice {
                 air_quality: {
                     platform: 'sensor',
                     unique_id: '$deviceid-air-quality',
-                    name: 'Air quality',
+                    name: '공기질 지표',
                     state_topic: '$this/sensor-air_quality',
+                    icon: 'mdi:air-filter',
+                },
+                co2: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-co2',
+                    name: '실내 이산화탄소',
+                    device_class: 'carbon_dioxide',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'ppm',
+                    state_topic: '$this/sensor-co2',
+                    icon: 'mdi:molecule-co2',
+                },
+                in_pm1: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-in-pm1',
+                    name: '실내 극초미세먼지 (PM1.0)',
+                    device_class: 'pm1',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-in_pm1',
+                    icon: 'mdi:blur',
+                },
+                in_pm25: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-in-pm25',
+                    name: '실내 초미세먼지 (PM2.5)',
+                    device_class: 'pm25',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-in_pm25',
+                    icon: 'mdi:blur',
+                },
+                in_pm10: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-in-pm10',
+                    name: '실내 미세먼지 (PM10)',
+                    device_class: 'pm10',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-in_pm10',
+                    icon: 'mdi:blur',
+                },
+                in_air_quality_level: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-in-air-quality-level',
+                    name: '실내 종합청정도',
+                    state_topic: '$this/sensor-in_air_quality_level',
+                    icon: 'mdi:air-filter',
+                },
+                out_pm1: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-out-pm1',
+                    name: '실외 극초미세먼지 (PM1.0)',
+                    device_class: 'pm1',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-out_pm1',
+                    icon: 'mdi:blur',
+                },
+                out_pm25: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-out-pm25',
+                    name: '실외 초미세먼지 (PM2.5)',
+                    device_class: 'pm25',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-out_pm25',
+                    icon: 'mdi:blur',
+                },
+                out_pm10: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-out-pm10',
+                    name: '실외 미세먼지 (PM10)',
+                    device_class: 'pm10',
+                    state_class: 'measurement',
+                    unit_of_measurement: 'µg/m³',
+                    state_topic: '$this/sensor-out_pm10',
+                    icon: 'mdi:blur',
+                },
+                out_air_quality_level: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-out-air-quality-level',
+                    name: '실외 종합청정도',
+                    state_topic: '$this/sensor-out_air_quality_level',
                     icon: 'mdi:air-filter',
                 },
             },
@@ -82,7 +167,8 @@ export default class VENT_725601_WW extends TLVDevice {
             false,
         )
 
-        // 0x1fa: Fan speed (raw 2 = 약, 4 = 중, 6 = 강)
+        // 0x1fa: Fan speed (ThinQ: 약풍 = raw 2, 강풍 = raw 6, 특강 = raw 8)
+        // HA speed: 1 (약풍), 2 (강풍), 3 (특강)
         this.addField(
             config,
             {
@@ -90,21 +176,21 @@ export default class VENT_725601_WW extends TLVDevice {
                 name: 'speed',
                 comp: 'fan',
                 read_xform: (raw) => {
-                    if (raw <= 2) return 1
-                    if (raw <= 4) return 2
-                    return 3
+                    if (raw <= 2) return 1 // 약풍
+                    if (raw <= 6) return 2 // 강풍
+                    return 3 // 특강
                 },
                 write_xform: (val) => {
                     const n = Number(val)
-                    if (n === 1) return 2
-                    if (n === 2) return 4
-                    return 6
+                    if (n === 1) return 2 // 약풍
+                    if (n === 2) return 6 // 강풍
+                    return 8 // 특강
                 },
             },
             false,
         )
 
-        // 0x1f9: Mode (0 = ventilation, 1 = auto, 2 = bypass, 3 = saving)
+        // 0x1f9: Mode (Hardware capability codes: 0x25 = auto, 0x26 = bypass, 0x27 = saving)
         this.addField(
             config,
             {
@@ -113,27 +199,26 @@ export default class VENT_725601_WW extends TLVDevice {
                 comp: 'fan',
                 read_xform: (raw) => {
                     const modes: Record<number, string> = {
-                        0: 'ventilation',
-                        1: 'auto',
-                        2: 'bypass',
-                        3: 'saving',
+                        0x25: 'auto',
+                        0x26: 'bypass',
+                        0x27: 'saving',
                     }
                     return modes[raw] ?? 'auto'
                 },
                 write_xform: (val) => {
                     const modes: Record<string, number> = {
-                        ventilation: 0,
-                        auto: 1,
-                        bypass: 2,
-                        saving: 3,
+                        auto: 0x25,
+                        bypass: 0x26,
+                        ventilation: 0x26,
+                        saving: 0x27,
                     }
-                    return modes[String(val).toLowerCase()] ?? 0
+                    return modes[String(val).toLowerCase()] ?? 0x25
                 },
             },
             false,
         )
 
-        // Temperatures
+        // Temperatures & Air quality index from TLV
         this.addField(
             config,
             {
@@ -185,6 +270,54 @@ export default class VENT_725601_WW extends TLVDevice {
         this.setConfig(config)
     }
 
+    processData(buf: Buffer) {
+        super.processData(buf)
+
+        // Parse Air Quality / Cleanliness packet (contains model Z-H0151B2SR)
+        const modelIdx = buf.indexOf('Z-H0151B2SR')
+        if (modelIdx >= 40) {
+            const co2Idx = modelIdx - 40
+            const co2 = buf.readUInt16BE(co2Idx)
+            const inClean = buf[co2Idx + 2]
+            const inPm10 = buf.readUInt16BE(co2Idx + 3)
+            const inPm25 = buf.readUInt16BE(co2Idx + 5)
+            const inPm1 = buf.readUInt16BE(co2Idx + 7)
+            const outPm10 = buf.readUInt16BE(co2Idx + 9)
+            const outPm25 = buf.readUInt16BE(co2Idx + 11)
+            const outPm1 = buf.readUInt16BE(co2Idx + 13)
+            const outClean = buf[co2Idx + 16]
+
+            const cleanMap: Record<number, string> = {
+                1: '좋음',
+                2: '보통',
+                3: '나쁨',
+                4: '매우나쁨',
+            }
+
+            log(
+                'status',
+                this.id,
+                `Parsed air quality: inClean=${inClean}, inPm1=${inPm1}, inPm25=${inPm25}, inPm10=${inPm10}, outClean=${outClean}, outPm1=${outPm1}, outPm25=${outPm25}, outPm10=${outPm10}, co2=${co2}`,
+            )
+
+            if (inClean >= 1 && inClean <= 4) {
+                this.publishProperty('sensor-in_air_quality_level', cleanMap[inClean] ?? inClean)
+                this.publishProperty('sensor-in_pm1', inPm1)
+                this.publishProperty('sensor-in_pm25', inPm25)
+                this.publishProperty('sensor-in_pm10', inPm10)
+            }
+            if (outClean >= 1 && outClean <= 4) {
+                this.publishProperty('sensor-out_air_quality_level', cleanMap[outClean] ?? outClean)
+                this.publishProperty('sensor-out_pm1', outPm1)
+                this.publishProperty('sensor-out_pm25', outPm25)
+                this.publishProperty('sensor-out_pm10', outPm10)
+            }
+            if (co2 >= 0 && co2 < 5000) {
+                this.publishProperty('sensor-co2', co2)
+            }
+        }
+    }
+
     setProperty(prop: string, mqttValue: string) {
         if (prop === 'fan-power') {
             if (mqttValue === 'ON') {
@@ -193,7 +326,7 @@ export default class VENT_725601_WW extends TLVDevice {
                     this.raw_clip_state[0x1fa] = 2 // default to 약 (level 1)
                 }
                 if (this.raw_clip_state[0x1f9] === undefined) {
-                    this.raw_clip_state[0x1f9] = 1 // default to auto
+                    this.raw_clip_state[0x1f9] = 0x25 // default to auto
                 }
                 this.send(
                     [1, 1, 2, 1, 1],
@@ -204,7 +337,8 @@ export default class VENT_725601_WW extends TLVDevice {
                     ],
                 )
                 this.publishProperty('fan-power', 'ON')
-                const speedLvl = this.raw_clip_state[0x1fa] <= 2 ? 1 : this.raw_clip_state[0x1fa] <= 4 ? 2 : 3
+                const speedLvl =
+                    this.raw_clip_state[0x1fa] <= 2 ? 1 : this.raw_clip_state[0x1fa] <= 6 ? 2 : 3
                 this.publishProperty('fan-speed', speedLvl)
             } else {
                 this.raw_clip_state[0x1f7] = 0
@@ -219,11 +353,11 @@ export default class VENT_725601_WW extends TLVDevice {
                 this.send([1, 1, 2, 1, 1], [{ t: 0x1f7, v: 0 }])
                 this.publishProperty('fan-power', 'OFF')
             } else {
-                const rawSpeed = num === 1 ? 2 : num === 2 ? 4 : 6
+                const rawSpeed = num === 1 ? 2 : num === 2 ? 6 : 8
                 this.raw_clip_state[0x1fa] = rawSpeed
                 this.raw_clip_state[0x1f7] = 1 // Ensure power turns on
                 if (this.raw_clip_state[0x1f9] === undefined) {
-                    this.raw_clip_state[0x1f9] = 1
+                    this.raw_clip_state[0x1f9] = 0x25
                 }
                 this.send(
                     [1, 1, 2, 1, 1],
@@ -238,12 +372,12 @@ export default class VENT_725601_WW extends TLVDevice {
             }
         } else if (prop === 'fan-mode') {
             const modes: Record<string, number> = {
-                ventilation: 0,
-                auto: 1,
-                bypass: 2,
-                saving: 3,
+                auto: 0x25,
+                bypass: 0x26,
+                ventilation: 0x26,
+                saving: 0x27,
             }
-            const modeVal = modes[mqttValue.toLowerCase()] ?? 1
+            const modeVal = modes[mqttValue.toLowerCase()] ?? 0x25
             this.raw_clip_state[0x1f9] = modeVal
             if (this.raw_clip_state[0x1f7] === 1) {
                 this.send(
