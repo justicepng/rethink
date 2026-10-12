@@ -196,7 +196,7 @@ export default class VENT_725601_WW extends TLVDevice {
             false,
         )
 
-        // 0x1f9: Mode (auto=0x25, bypass=0x26, saving=0x27, ventilation=0x26)
+        // 0x1f9: Mode (auto=0x27, bypass=0x26, saving=0x25, ventilation=0x26)
         this.addField(
             config,
             {
@@ -205,20 +205,20 @@ export default class VENT_725601_WW extends TLVDevice {
                 comp: 'fan',
                 read_xform: (raw) => {
                     const modes: Record<number, string> = {
-                        0x25: 'auto',
+                        0x27: 'auto',
                         0x26: 'bypass',
-                        0x27: 'saving',
+                        0x25: 'saving',
                     }
                     return modes[raw] ?? 'auto'
                 },
                 write_xform: (val) => {
                     const modes: Record<string, number> = {
-                        auto: 0x25,
-                        saving: 0x27,
+                        auto: 0x27,
+                        saving: 0x25,
                         bypass: 0x26,
                         ventilation: 0x26,
                     }
-                    return modes[String(val).toLowerCase()] ?? 0x25
+                    return modes[String(val).toLowerCase()] ?? 0x27
                 },
             },
             false,
@@ -345,7 +345,7 @@ export default class VENT_725601_WW extends TLVDevice {
                     this.raw_clip_state[0x1fa] = 2 // default to 약 (level 1)
                 }
                 if (this.raw_clip_state[0x1f9] === undefined) {
-                    this.raw_clip_state[0x1f9] = 0x25 // default to auto
+                    this.raw_clip_state[0x1f9] = 0x27 // default to auto
                 }
                 this.send(
                     [1, 1, 2, 1, 1],
@@ -386,7 +386,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 this.raw_clip_state[0x1fa] = rawSpeed
                 this.raw_clip_state[0x1f7] = 1 // Ensure power turns on
                 if (this.raw_clip_state[0x1f9] === undefined) {
-                    this.raw_clip_state[0x1f9] = 0x25
+                    this.raw_clip_state[0x1f9] = 0x27
                 }
                 this.send(
                     [1, 1, 2, 1, 1],
@@ -401,12 +401,12 @@ export default class VENT_725601_WW extends TLVDevice {
             }
         } else if (prop === 'fan-mode') {
             const modes: Record<string, number> = {
-                auto: 0x25,
-                saving: 0x27,
+                auto: 0x27,
+                saving: 0x25,
                 bypass: 0x26,
                 ventilation: 0x26,
             }
-            const modeVal = modes[mqttValue.toLowerCase()] ?? 0x25
+            const modeVal = modes[mqttValue.toLowerCase()] ?? 0x27
             this.raw_clip_state[0x1f9] = modeVal
             if (this.raw_clip_state[0x1f7] === 1) {
                 this.send(
@@ -423,7 +423,7 @@ export default class VENT_725601_WW extends TLVDevice {
             const val = mqttValue === 'ON' ? 1 : 0
             this.raw_clip_state[0x2a2] = val
             const pwr = this.raw_clip_state[0x1f7] ?? 1
-            const mode = this.raw_clip_state[0x1f9] ?? 0x25
+            const mode = this.raw_clip_state[0x1f9] ?? 0x27
             this.send(
                 [1, 1, 2, 1, 1],
                 [
