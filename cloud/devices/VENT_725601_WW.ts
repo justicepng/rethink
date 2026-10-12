@@ -60,6 +60,24 @@ export default class VENT_725601_WW extends TLVDevice {
                     unit_of_measurement: '°C',
                     state_topic: '$this/sensor-temp_outdoor',
                 },
+                temp_controller: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-temp-controller',
+                    name: '조절기 실내 온도',
+                    device_class: 'temperature',
+                    state_class: 'measurement',
+                    unit_of_measurement: '°C',
+                    state_topic: '$this/sensor-temp_controller',
+                },
+                filter_life: {
+                    platform: 'sensor',
+                    unique_id: '$deviceid-filter-life',
+                    name: '필터 잔여수명',
+                    state_class: 'measurement',
+                    unit_of_measurement: '%',
+                    state_topic: '$this/sensor-filter_life',
+                    icon: 'mdi:air-filter',
+                },
                 air_quality: {
                     platform: 'sensor',
                     unique_id: '$deviceid-air-quality',
@@ -279,6 +297,32 @@ export default class VENT_725601_WW extends TLVDevice {
             {
                 id: 0x334,
                 name: 'air_quality',
+                comp: 'sensor',
+                writable: false,
+                read_xform: (raw) => raw,
+            },
+            false,
+        )
+
+        // 0x1fd: Remote controller indoor temperature (raw / 2 = °C, e.g. 51 / 2 = 25.5°C)
+        this.addField(
+            config,
+            {
+                id: 0x1fd,
+                name: 'temp_controller',
+                comp: 'sensor',
+                writable: false,
+                read_xform: (raw) => raw / 2,
+            },
+            false,
+        )
+
+        // 0x38d: Filter life remaining (0..100%)
+        this.addField(
+            config,
+            {
+                id: 0x38d,
+                name: 'filter_life',
                 comp: 'sensor',
                 writable: false,
                 read_xform: (raw) => raw,
