@@ -66,7 +66,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 temp_controller: {
                     platform: 'sensor',
                     unique_id: '$deviceid-temp-controller',
-                    name: '실내 온도 (조절기)',
+                    name: '환경 센서: 실내 온도 (조절기)',
                     device_class: 'temperature',
                     state_class: 'measurement',
                     unit_of_measurement: '°C',
@@ -75,7 +75,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 filter_pre: {
                     platform: 'sensor',
                     unique_id: '$deviceid-filter-pre',
-                    name: '프리필터 잔여수명',
+                    name: '필터 잔여수명 (1. 프리필터)',
                     state_class: 'measurement',
                     unit_of_measurement: '%',
                     state_topic: '$this/sensor-filter_pre',
@@ -84,7 +84,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 filter_life: {
                     platform: 'sensor',
                     unique_id: '$deviceid-filter-life',
-                    name: '미세먼지 필터 잔여수명',
+                    name: '필터 잔여수명 (2. 미세먼지 필터)',
                     state_class: 'measurement',
                     unit_of_measurement: '%',
                     state_topic: '$this/sensor-filter_life',
@@ -101,7 +101,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 co2: {
                     platform: 'sensor',
                     unique_id: '$deviceid-co2',
-                    name: '실내 이산화탄소',
+                    name: '환경 센서: 실내 이산화탄소 (CO2)',
                     device_class: 'carbon_dioxide',
                     state_class: 'measurement',
                     unit_of_measurement: 'ppm',
@@ -111,7 +111,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 in_pm1: {
                     platform: 'sensor',
                     unique_id: '$deviceid-in-pm1',
-                    name: '실내 유입 극초미세먼지 (PM1.0)',
+                    name: '실내 먼지 PM1.0 (극초미세)',
                     device_class: 'pm1',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -121,7 +121,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 in_pm25: {
                     platform: 'sensor',
                     unique_id: '$deviceid-in-pm25',
-                    name: '실내 유입 초미세먼지 (PM2.5)',
+                    name: '실내 먼지 PM2.5 (초미세)',
                     device_class: 'pm25',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -131,7 +131,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 in_pm10: {
                     platform: 'sensor',
                     unique_id: '$deviceid-in-pm10',
-                    name: '실내 유입 미세먼지 (PM10)',
+                    name: '실내 먼지 PM10 (미세)',
                     device_class: 'pm10',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -141,14 +141,14 @@ export default class VENT_725601_WW extends TLVDevice {
                 in_air_quality_level: {
                     platform: 'sensor',
                     unique_id: '$deviceid-in-air-quality-level',
-                    name: '실내 유입 종합청정도',
+                    name: '환경 센서: 실내 종합청정도',
                     state_topic: '$this/sensor-in_air_quality_level',
                     icon: 'mdi:air-filter',
                 },
                 out_pm1: {
                     platform: 'sensor',
                     unique_id: '$deviceid-out-pm1',
-                    name: '실외 극초미세먼지 (PM1.0)',
+                    name: '실외 먼지 PM1.0 (극초미세)',
                     device_class: 'pm1',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -158,7 +158,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 out_pm25: {
                     platform: 'sensor',
                     unique_id: '$deviceid-out-pm25',
-                    name: '실외 초미세먼지 (PM2.5)',
+                    name: '실외 먼지 PM2.5 (초미세)',
                     device_class: 'pm25',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -168,7 +168,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 out_pm10: {
                     platform: 'sensor',
                     unique_id: '$deviceid-out-pm10',
-                    name: '실외 미세먼지 (PM10)',
+                    name: '실외 먼지 PM10 (미세)',
                     device_class: 'pm10',
                     state_class: 'measurement',
                     unit_of_measurement: 'µg/m³',
@@ -178,7 +178,7 @@ export default class VENT_725601_WW extends TLVDevice {
                 out_air_quality_level: {
                     platform: 'sensor',
                     unique_id: '$deviceid-out-air-quality-level',
-                    name: '실외 종합청정도',
+                    name: '환경 센서: 실외 종합청정도',
                     state_topic: '$this/sensor-out_air_quality_level',
                     icon: 'mdi:air-filter',
                 },
