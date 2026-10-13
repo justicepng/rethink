@@ -119,10 +119,15 @@ class Bridge {
         })
     }
 
+    dropTimers = new Map<string, NodeJS.Timeout>()
+
     newDevice(thinqdev: AnyDevice) {
         const meta = thinqdev.meta
-        const oldDevice = this.haDevices.get(thinqdev.id)
-        if (oldDevice) oldDevice.drop()
+        const pendingTimer = this.dropTimers.get(thinqdev.id)
+        if (pendingTimer) {
+            clearTimeout(pendingTimer)
+            this.dropTimers.delete(thinqdev.id)
+        }
 
         let hadevice: HADevice | undefined
 
@@ -152,8 +157,18 @@ class Bridge {
 
     dropDevice(ha: HADevice) {
         if (this.haDevices.get(ha.id) === ha) {
-            this.haDevices.delete(ha.id)
-            ha.drop()
+            const pendingTimer = this.dropTimers.get(ha.id)
+            if (pendingTimer) clearTimeout(pendingTimer)
+
+            // Debounce offline availability by 30 seconds to prevent flicker during fast reconnects
+            const timer = setTimeout(() => {
+                if (this.haDevices.get(ha.id) === ha) {
+                    this.haDevices.delete(ha.id)
+                    ha.drop()
+                }
+                this.dropTimers.delete(ha.id)
+            }, 30000)
+            this.dropTimers.set(ha.id, timer)
         }
     }
 }

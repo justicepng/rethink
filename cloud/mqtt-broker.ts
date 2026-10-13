@@ -154,7 +154,7 @@ export class Broker extends TypedEmitter<BrokerEvents> {
 
         this.clients.add(client)
 
-        stream.setTimeout(1000 * 60 * 5)
+        stream.setTimeout(1000 * 60 * 15)
         stream.on('timeout', function () {
             client.destroy()
         })
